@@ -1,0 +1,1749 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Green Future - التوعية بفوائد التشجير وأثره الإيجابي على البيئة والمجتمع" />
+  <title>Green Future | مستقبل أخضر</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+
+  <!-- QR Code: pure canvas implementation, no external dependency -->
+
+  <style>
+    /* ============================================
+       DESIGN TOKENS
+       ============================================ */
+    :root {
+      --forest:     #1B4332;
+      --canopy:     #2D6A4F;
+      --leaf:       #52B788;
+      --mint:       #95D5B2;
+      --mist:       #D8F3DC;
+      --cream:      #F7F4EF;
+      --bark:       #6B4226;
+      --bark-light: #A0714F;
+      --earth:      #C9A87C;
+      --white:      #FFFFFF;
+      --ink:        #1A1A1A;
+      --ink-light:  #4A4A4A;
+      --shadow:     rgba(27, 67, 50, 0.12);
+
+      --font-display: 'Playfair Display', serif;
+      --font-body:    'Cairo', sans-serif;
+
+      --radius-sm:  8px;
+      --radius-md:  16px;
+      --radius-lg:  28px;
+      --radius-xl:  48px;
+
+      --transition: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    /* Dark Mode */
+    [data-theme="dark"] {
+      --cream:     #0D1F17;
+      --mist:      #122B1F;
+      --white:     #1A2E23;
+      --ink:       #E8F5E9;
+      --ink-light: #A5C8B2;
+      --shadow:    rgba(0, 0, 0, 0.4);
+      --earth:     #8B6B4A;
+    }
+
+    /* ============================================
+       RESET & BASE
+       ============================================ */
+    *, *::before, *::after {
+      margin: 0; padding: 0;
+      box-sizing: border-box;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--cream);
+      color: var(--ink);
+      overflow-x: hidden;
+      transition: background var(--transition), color var(--transition);
+    }
+
+    ::selection {
+      background: var(--mint);
+      color: var(--forest);
+    }
+
+    /* ============================================
+       NAV
+       ============================================ */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 5%;
+      background: rgba(247, 244, 239, 0.88);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(82, 183, 136, 0.15);
+      transition: background var(--transition);
+    }
+
+    [data-theme="dark"] nav {
+      background: rgba(13, 31, 23, 0.88);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 700;
+      font-size: 1.3rem;
+      color: var(--forest);
+      text-decoration: none;
+    }
+
+    [data-theme="dark"] .nav-logo { color: var(--mint); }
+
+    .nav-logo svg {
+      width: 32px; height: 32px;
+      flex-shrink: 0;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: var(--ink-light);
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+      position: relative;
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px; right: 0;
+      width: 0; height: 2px;
+      background: var(--leaf);
+      border-radius: 2px;
+      transition: width 0.3s;
+    }
+
+    .nav-links a:hover { color: var(--canopy); }
+    .nav-links a:hover::after { width: 100%; }
+    [data-theme="dark"] .nav-links a:hover { color: var(--mint); }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .theme-toggle {
+      background: none;
+      border: 2px solid var(--leaf);
+      border-radius: 50%;
+      width: 40px; height: 40px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--canopy);
+      font-size: 1.1rem;
+      transition: all 0.3s;
+    }
+
+    .theme-toggle:hover {
+      background: var(--leaf);
+      color: white;
+    }
+
+    [data-theme="dark"] .theme-toggle {
+      border-color: var(--mint);
+      color: var(--mint);
+    }
+
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .hamburger span {
+      display: block;
+      width: 24px; height: 2px;
+      background: var(--ink);
+      border-radius: 2px;
+      transition: all 0.3s;
+    }
+
+    [data-theme="dark"] .hamburger span { background: var(--ink); }
+
+    /* ============================================
+       HERO SECTION
+       ============================================ */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      padding: 6rem 5% 3rem;
+    }
+
+    /* Organic animated background */
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 40%, rgba(149, 213, 178, 0.25) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 80% at 80% 70%, rgba(82, 183, 136, 0.15) 0%, transparent 55%),
+        radial-gradient(ellipse 100% 40% at 50% 10%, rgba(27, 67, 50, 0.08) 0%, transparent 50%),
+        var(--cream);
+      z-index: 0;
+    }
+
+    /* Floating leaf shapes */
+    .leaf-float {
+      position: absolute;
+      opacity: 0.06;
+      animation: leafFloat 12s ease-in-out infinite;
+      z-index: 1;
+    }
+
+    .leaf-float:nth-child(2) { animation-delay: -4s; animation-duration: 15s; }
+    .leaf-float:nth-child(3) { animation-delay: -8s; animation-duration: 10s; }
+
+    @keyframes leafFloat {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      33% { transform: translateY(-20px) rotate(5deg); }
+      66% { transform: translateY(10px) rotate(-3deg); }
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 800px;
+      text-align: center;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(82, 183, 136, 0.15);
+      border: 1px solid rgba(82, 183, 136, 0.4);
+      color: var(--canopy);
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 0.4rem 1.2rem;
+      border-radius: 50px;
+      margin-bottom: 1.5rem;
+      letter-spacing: 0.05em;
+      animation: fadeDown 0.8s ease both;
+    }
+
+    [data-theme="dark"] .hero-badge { color: var(--mint); }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.8rem, 7vw, 5.5rem);
+      font-weight: 900;
+      line-height: 1.1;
+      color: var(--forest);
+      margin-bottom: 1.5rem;
+      animation: fadeDown 0.8s 0.15s ease both;
+    }
+
+    [data-theme="dark"] .hero-title { color: var(--mint); }
+
+    .hero-title .highlight {
+      position: relative;
+      display: inline-block;
+      color: var(--canopy);
+    }
+
+    .hero-title .highlight::after {
+      content: '';
+      position: absolute;
+      bottom: 4px; right: 0; left: 0;
+      height: 6px;
+      background: linear-gradient(90deg, var(--mint), var(--leaf));
+      border-radius: 3px;
+      opacity: 0.6;
+      z-index: -1;
+    }
+
+    .hero-desc {
+      font-size: clamp(1rem, 2.5vw, 1.25rem);
+      color: var(--ink-light);
+      line-height: 1.8;
+      max-width: 600px;
+      margin: 0 auto 2.5rem;
+      animation: fadeDown 0.8s 0.3s ease both;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      animation: fadeDown 0.8s 0.45s ease both;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.875rem 2.25rem;
+      background: linear-gradient(135deg, var(--canopy), var(--forest));
+      color: white;
+      font-family: var(--font-body);
+      font-weight: 700;
+      font-size: 1rem;
+      border: none;
+      border-radius: var(--radius-xl);
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.3s, box-shadow 0.3s;
+      box-shadow: 0 6px 24px rgba(27, 67, 50, 0.35);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 32px rgba(27, 67, 50, 0.45);
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.875rem 2.25rem;
+      background: transparent;
+      color: var(--canopy);
+      font-family: var(--font-body);
+      font-weight: 700;
+      font-size: 1rem;
+      border: 2px solid var(--leaf);
+      border-radius: var(--radius-xl);
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s;
+    }
+
+    .btn-secondary:hover {
+      background: var(--mist);
+      transform: translateY(-3px);
+    }
+
+    [data-theme="dark"] .btn-secondary { color: var(--mint); border-color: var(--mint); }
+    [data-theme="dark"] .btn-secondary:hover { background: rgba(149, 213, 178, 0.1); }
+
+    /* Hero tree illustration */
+    .hero-tree {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 45%;
+      max-width: 520px;
+      opacity: 0.12;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .hero-tree-left {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 35%;
+      max-width: 380px;
+      opacity: 0.08;
+      z-index: 1;
+      pointer-events: none;
+      transform: scaleX(-1);
+    }
+
+    .scroll-indicator {
+      position: absolute;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--ink-light);
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      animation: fadeDown 1s 0.8s ease both;
+      z-index: 2;
+    }
+
+    .scroll-indicator .scroll-line {
+      width: 1px;
+      height: 40px;
+      background: linear-gradient(to bottom, var(--leaf), transparent);
+      animation: scrollPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes scrollPulse {
+      0%, 100% { transform: scaleY(1); opacity: 1; }
+      50% { transform: scaleY(0.5); opacity: 0.4; }
+    }
+
+    /* ============================================
+       SECTION SHARED
+       ============================================ */
+    section { padding: 5rem 5%; }
+
+    .section-eyebrow {
+      display: inline-block;
+      color: var(--leaf);
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 700;
+      color: var(--forest);
+      line-height: 1.25;
+      margin-bottom: 1rem;
+    }
+
+    [data-theme="dark"] .section-title { color: var(--mint); }
+
+    .section-desc {
+      font-size: 1.05rem;
+      color: var(--ink-light);
+      line-height: 1.8;
+      max-width: 580px;
+    }
+
+    /* ============================================
+       BENEFITS SECTION
+       ============================================ */
+    #benefits {
+      background: var(--white);
+      transition: background var(--transition);
+    }
+
+    .benefits-header {
+      max-width: 1200px;
+      margin: 0 auto 3.5rem;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .benefits-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .benefit-card {
+      background: var(--cream);
+      border: 1px solid rgba(82, 183, 136, 0.12);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+      position: relative;
+      overflow: hidden;
+      cursor: default;
+    }
+
+    [data-theme="dark"] .benefit-card {
+      background: var(--mist);
+      border-color: rgba(82, 183, 136, 0.2);
+    }
+
+    .benefit-card::before {
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      width: 80px; height: 80px;
+      background: radial-gradient(circle at top right, rgba(82, 183, 136, 0.12), transparent 70%);
+      border-radius: 0 var(--radius-lg) 0 100%;
+      transition: opacity 0.3s;
+    }
+
+    .benefit-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 48px var(--shadow);
+      border-color: rgba(82, 183, 136, 0.35);
+    }
+
+    .benefit-card:hover::before { opacity: 2; }
+
+    .benefit-icon {
+      width: 56px; height: 56px;
+      background: linear-gradient(135deg, var(--mist), rgba(149, 213, 178, 0.4));
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      margin-bottom: 1.25rem;
+      transition: transform 0.3s;
+    }
+
+    .benefit-card:hover .benefit-icon { transform: scale(1.1) rotate(-5deg); }
+
+    .benefit-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--forest);
+      margin-bottom: 0.6rem;
+    }
+
+    [data-theme="dark"] .benefit-title { color: var(--mint); }
+
+    .benefit-desc {
+      font-size: 0.9rem;
+      color: var(--ink-light);
+      line-height: 1.75;
+    }
+
+    /* ============================================
+       STATS SECTION
+       ============================================ */
+    #stats {
+      background: linear-gradient(135deg, var(--forest) 0%, var(--canopy) 60%, var(--leaf) 100%);
+      position: relative;
+      overflow: hidden;
+      padding: 5rem 5%;
+    }
+
+    #stats::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+
+    .stats-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .stats-header {
+      text-align: center;
+      margin-bottom: 3.5rem;
+    }
+
+    .stats-header .section-eyebrow { color: var(--mint); }
+
+    .stats-header .section-title {
+      color: white;
+      margin-bottom: 0.75rem;
+    }
+
+    .stats-header .section-desc {
+      color: rgba(255,255,255,0.75);
+      margin: 0 auto;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .stat-card {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: var(--radius-lg);
+      padding: 2rem 1.5rem;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      transition: transform 0.3s, background 0.3s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+      background: rgba(255,255,255,0.13);
+    }
+
+    .stat-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+
+    .stat-number {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 900;
+      color: white;
+      line-height: 1;
+      margin-bottom: 0.4rem;
+    }
+
+    .stat-suffix {
+      color: var(--mint);
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.7);
+      font-weight: 600;
+      line-height: 1.5;
+    }
+
+    /* ============================================
+       CTA SECTION
+       ============================================ */
+    #cta {
+      background: var(--mist);
+      transition: background var(--transition);
+    }
+
+    .cta-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+
+    .cta-text .section-title { margin-bottom: 1rem; }
+
+    .cta-text .section-desc { margin-bottom: 2rem; }
+
+    .cta-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .cta-step {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .cta-step-icon {
+      width: 40px; height: 40px;
+      background: var(--leaf);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    .cta-step-text {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    [data-theme="dark"] .cta-step-text { color: var(--ink); }
+
+    .cta-visual {
+      background: linear-gradient(160deg, var(--canopy) 0%, var(--forest) 100%);
+      border-radius: var(--radius-xl);
+      padding: 3rem 2rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 24px 64px rgba(27, 67, 50, 0.35);
+    }
+
+    .cta-visual::before {
+      content: '';
+      position: absolute;
+      top: -30%; left: -20%;
+      width: 200%; height: 60%;
+      background: radial-gradient(ellipse, rgba(149, 213, 178, 0.2), transparent 60%);
+    }
+
+    .cta-tree-emoji {
+      font-size: 5rem;
+      display: block;
+      margin-bottom: 1rem;
+      position: relative;
+      z-index: 1;
+      animation: treePulse 3s ease-in-out infinite;
+    }
+
+    @keyframes treePulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.06); }
+    }
+
+    .cta-visual-title {
+      color: white;
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .cta-visual-sub {
+      color: rgba(255,255,255,0.75);
+      font-size: 0.9rem;
+      line-height: 1.6;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ============================================
+       QR CODE SECTION
+       ============================================ */
+    #qr {
+      background: var(--white);
+      transition: background var(--transition);
+    }
+
+    .qr-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+
+    .qr-card {
+      background: var(--cream);
+      border: 2px solid rgba(82, 183, 136, 0.2);
+      border-radius: var(--radius-xl);
+      padding: 2.5rem;
+      text-align: center;
+      position: relative;
+      transition: background var(--transition);
+    }
+
+    [data-theme="dark"] .qr-card {
+      background: var(--mist);
+      border-color: rgba(82, 183, 136, 0.3);
+    }
+
+    /* Print corner marks */
+    .qr-card::before, .qr-card::after {
+      content: '';
+      position: absolute;
+      width: 20px; height: 20px;
+      border-color: var(--leaf);
+      border-style: solid;
+    }
+
+    .qr-card::before { top: 12px; right: 12px; border-width: 2px 2px 0 0; }
+    .qr-card::after  { bottom: 12px; left: 12px; border-width: 0 0 2px 2px; }
+
+    .qr-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      color: var(--forest);
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    [data-theme="dark"] .qr-logo { color: var(--mint); }
+
+    #qrcode {
+      display: inline-block;
+      padding: 0.75rem;
+      background: white;
+      border-radius: var(--radius-md);
+      box-shadow: 0 4px 20px var(--shadow);
+      margin-bottom: 1.25rem;
+    }
+
+    #qrcode canvas,
+    #qrcode img { border-radius: 6px; }
+
+    .qr-url {
+      font-size: 0.8rem;
+      color: var(--ink-light);
+      word-break: break-all;
+      padding: 0.5rem 1rem;
+      background: var(--mist);
+      border-radius: var(--radius-sm);
+      margin-bottom: 1.25rem;
+    }
+
+    [data-theme="dark"] .qr-url { background: rgba(149, 213, 178, 0.1); }
+
+    .qr-scan-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--canopy);
+      letter-spacing: 0.05em;
+    }
+
+    [data-theme="dark"] .qr-scan-label { color: var(--mint); }
+
+    .qr-info {}
+
+    .qr-info .section-title { margin-bottom: 1rem; }
+
+    .qr-info .section-desc { margin-bottom: 2rem; }
+
+    .qr-uses {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+    }
+
+    .qr-use-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.95rem;
+      color: var(--ink-light);
+    }
+
+    .qr-use-dot {
+      width: 8px; height: 8px;
+      background: var(--leaf);
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .btn-print {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.75rem;
+      background: linear-gradient(135deg, var(--bark-light), var(--bark));
+      color: white;
+      font-family: var(--font-body);
+      font-weight: 700;
+      font-size: 0.9rem;
+      border: none;
+      border-radius: var(--radius-xl);
+      cursor: pointer;
+      transition: transform 0.3s, box-shadow 0.3s;
+      box-shadow: 0 4px 16px rgba(107, 66, 38, 0.3);
+    }
+
+    .btn-print:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(107, 66, 38, 0.4);
+    }
+
+    /* ============================================
+       FOOTER
+       ============================================ */
+    footer {
+      background: var(--forest);
+      color: rgba(255,255,255,0.7);
+      padding: 2.5rem 5%;
+      text-align: center;
+    }
+
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      color: white;
+      font-weight: 700;
+      font-size: 1.2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .footer-tagline {
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .footer-divider {
+      width: 60px;
+      height: 2px;
+      background: var(--leaf);
+      margin: 0 auto 1.5rem;
+      border-radius: 2px;
+    }
+
+    .footer-copy {
+      font-size: 0.8rem;
+      opacity: 0.5;
+    }
+
+    /* ============================================
+       ANIMATIONS
+       ============================================ */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Stagger for grid children */
+    .benefits-grid .reveal:nth-child(1) { transition-delay: 0.05s; }
+    .benefits-grid .reveal:nth-child(2) { transition-delay: 0.1s; }
+    .benefits-grid .reveal:nth-child(3) { transition-delay: 0.15s; }
+    .benefits-grid .reveal:nth-child(4) { transition-delay: 0.2s; }
+    .benefits-grid .reveal:nth-child(5) { transition-delay: 0.25s; }
+    .benefits-grid .reveal:nth-child(6) { transition-delay: 0.3s; }
+    .benefits-grid .reveal:nth-child(7) { transition-delay: 0.35s; }
+    .benefits-grid .reveal:nth-child(8) { transition-delay: 0.4s; }
+
+    .stats-grid .reveal:nth-child(1) { transition-delay: 0.05s; }
+    .stats-grid .reveal:nth-child(2) { transition-delay: 0.1s; }
+    .stats-grid .reveal:nth-child(3) { transition-delay: 0.15s; }
+    .stats-grid .reveal:nth-child(4) { transition-delay: 0.2s; }
+
+    /* ============================================
+       MOBILE NAV OVERLAY
+       ============================================ */
+    .mobile-menu {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: var(--cream);
+      z-index: 999;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      transition: background var(--transition);
+    }
+
+    [data-theme="dark"] .mobile-menu { background: var(--cream); }
+
+    .mobile-menu.open { display: flex; }
+
+    .mobile-menu a {
+      text-decoration: none;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--forest);
+    }
+
+    [data-theme="dark"] .mobile-menu a { color: var(--mint); }
+
+    .mobile-close {
+      position: absolute;
+      top: 1.5rem;
+      left: 5%;
+      background: none;
+      border: none;
+      font-size: 1.75rem;
+      cursor: pointer;
+      color: var(--ink);
+    }
+
+    /* ============================================
+       RESPONSIVE
+       ============================================ */
+    @media (max-width: 900px) {
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+
+      .cta-inner,
+      .qr-inner {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+      }
+
+      .qr-inner { direction: ltr; }
+      .qr-inner > *:first-child { order: 2; }
+      .qr-inner > *:last-child { order: 1; }
+    }
+
+    @media (max-width: 600px) {
+      section { padding: 4rem 5%; }
+
+      .hero-tree,
+      .hero-tree-left { display: none; }
+
+      .benefits-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ============================================
+       PRINT STYLES
+       ============================================ */
+    @media print {
+      * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; }
+      nav, #hero, #benefits, #stats, #cta, footer,
+      .qr-info { display: none !important; }
+
+      #qr { display: block !important; padding: 2rem; }
+      .qr-inner { grid-template-columns: 1fr; }
+      .qr-info { display: none !important; }
+      .qr-card { border: 2px solid #2D6A4F; page-break-inside: avoid; max-width: 360px; margin: 0 auto; }
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ============================================================
+       NAV
+  ============================================================ -->
+  <nav role="navigation" aria-label="القائمة الرئيسية">
+    <a href="#" class="nav-logo" aria-label="الصفحة الرئيسية">
+      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M16 3C11 3 6 7 6 13C6 17.5 8.5 21.2 12 22.8V28H20V22.8C23.5 21.2 26 17.5 26 13C26 7 21 3 16 3Z" fill="#2D6A4F"/>
+        <path d="M16 3C13 3 10 5.5 10 9C10 12 12 14.5 14.5 15.5V28H17.5V15.5C20 14.5 22 12 22 9C22 5.5 19 3 16 3Z" fill="#52B788" opacity="0.7"/>
+        <rect x="15" y="22" width="2" height="7" rx="1" fill="#6B4226"/>
+      </svg>
+      Green Future
+    </a>
+
+    <ul class="nav-links" role="list">
+      <li><a href="#hero">الرئيسية</a></li>
+      <li><a href="#benefits">الفوائد</a></li>
+      <li><a href="#stats">الإحصائيات</a></li>
+      <li><a href="#cta">شارك</a></li>
+      <li><a href="#qr">QR Code</a></li>
+    </ul>
+
+    <div class="nav-actions">
+      <button class="theme-toggle" id="themeToggle" aria-label="تبديل الوضع الليلي">
+        🌙
+      </button>
+      <button class="hamburger" id="hamburger" aria-label="فتح القائمة" aria-expanded="false">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" id="mobileMenu" role="dialog" aria-modal="true" aria-label="قائمة التنقل">
+    <button class="mobile-close" id="mobileClose" aria-label="إغلاق القائمة">✕</button>
+    <a href="#hero" class="mobile-link">الرئيسية</a>
+    <a href="#benefits" class="mobile-link">الفوائد</a>
+    <a href="#stats" class="mobile-link">الإحصائيات</a>
+    <a href="#cta" class="mobile-link">شارك</a>
+    <a href="#qr" class="mobile-link">QR Code</a>
+  </div>
+
+  <!-- ============================================================
+       HERO
+  ============================================================ -->
+  <section id="hero" aria-label="القسم الرئيسي">
+    <div class="hero-bg" aria-hidden="true">
+      <!-- Floating leaf decorations -->
+      <svg class="leaf-float" style="top:15%;left:8%;width:220px" viewBox="0 0 200 200" fill="none">
+        <path d="M100 10 Q150 60 140 130 Q90 170 40 140 Q10 80 100 10Z" fill="#52B788"/>
+      </svg>
+      <svg class="leaf-float" style="top:30%;right:10%;width:160px" viewBox="0 0 200 200" fill="none">
+        <path d="M100 10 Q150 60 140 130 Q90 170 40 140 Q10 80 100 10Z" fill="#2D6A4F"/>
+      </svg>
+      <svg class="leaf-float" style="bottom:20%;left:25%;width:100px" viewBox="0 0 200 200" fill="none">
+        <path d="M100 10 Q150 60 140 130 Q90 170 40 140 Q10 80 100 10Z" fill="#95D5B2"/>
+      </svg>
+    </div>
+
+    <!-- Large tree silhouettes -->
+    <svg class="hero-tree" viewBox="0 0 400 500" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M200 50 L100 200 H160 L80 350 H155 L75 470 H325 L245 350 H320 L240 200 H300 Z" fill="#1B4332"/>
+      <rect x="185" y="470" width="30" height="30" rx="4" fill="#6B4226"/>
+    </svg>
+
+    <svg class="hero-tree-left" viewBox="0 0 400 500" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <ellipse cx="200" cy="180" rx="130" ry="150" fill="#2D6A4F"/>
+      <ellipse cx="160" cy="250" rx="100" ry="130" fill="#1B4332"/>
+      <rect x="185" y="400" width="30" height="70" rx="4" fill="#6B4226"/>
+    </svg>
+
+    <div class="hero-content" role="main">
+      <div class="hero-badge" aria-label="شعار الموقع">
+        🌿 مستقبل أخضر أفضل
+      </div>
+
+      <h1 class="hero-title">
+        <span class="highlight">فوائد</span> التشجير<br>
+        تبدأ بخطوة واحدة
+      </h1>
+
+      <p class="hero-desc">
+        كل شجرة تزرعها هي استثمار في مستقبل أنظف وأجمل وأكثر صحة.
+        اكتشف كيف يمكن للتشجير أن يغيّر حياتنا والكوكب الذي نعيش عليه.
+      </p>
+
+      <div class="hero-cta">
+        <a href="#benefits" class="btn-primary" aria-label="اكتشف فوائد التشجير">
+          🌳 اكتشف الفوائد
+        </a>
+        <a href="#cta" class="btn-secondary" aria-label="شارك في المبادرة">
+          🤝 شارك الآن
+        </a>
+      </div>
+    </div>
+
+    <div class="scroll-indicator" aria-hidden="true">
+      <span>استكشف</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       BENEFITS
+  ============================================================ -->
+  <section id="benefits" aria-labelledby="benefits-title">
+    <div class="benefits-header reveal">
+      <div>
+        <span class="section-eyebrow">لماذا التشجير؟</span>
+        <h2 class="section-title" id="benefits-title">فوائد لا تُحصى<br>للشجرة الواحدة</h2>
+      </div>
+      <p class="section-desc">
+        الأشجار ليست مجرد نباتات — إنها منظومة بيولوجية متكاملة تخدم البشرية والطبيعة معاً بطرق لا نتخيلها.
+      </p>
+    </div>
+
+    <div class="benefits-grid">
+
+      <article class="benefit-card reveal">
+        <div class="benefit-icon" aria-hidden="true">💨</div>
+        <h3 class="benefit-title">تنقية الهواء</h3>
+        <p class="benefit-desc">الأشجار تمتص ثاني أكسيد الكربون وتنتج الأكسجين النقي الذي نتنفسه، كما تمتص الملوثات الضارة كالرصاص والنيتروجين.</p>
+      </article>
+
+      <article class="benefit-card reveal">
+        <div class="benefit-icon" aria-hidden="true">🌡️</div>
+        <h3 class="benefit-title">مكافحة التغير المناخي</h3>
+        <p class="benefit-desc">تساعد على تقليل الاحتباس الحراري والحد من الانبعاثات الكربونية من خلال تخزين الكربون في خشبها وتربتها لعقود.</p>
+      </article>
+
+      <article class="benefit-card reveal">
+        <div class="benefit-icon" aria-hidden="true">☀️</div>
+        <h3 class="benefit-title">خفض درجات الحرارة</h3>
+        <p class="benefit-desc">توفر الظل وتقلل من تأثير الحرارة في المدن والمناطق السكنية، وتخفف ظاهرة الجزر الحرارية في المدن الكبرى.</p>
+      </article>
+
+      <article class="benefit-card reveal">
+        <div class="benefit-icon" aria-hidden="true">🪨</div>
+        <h3 class="benefit-title">حماية التربة</h3>
+        <p class="benefit-desc">تمنع انجراف التربة وتحافظ على خصوبتها وترطيبها، مما يحمي الأراضي الزراعية ويحول دون التصحر.</p>
+      </article>
+
+      <article class="benefit-card reveal">
+        <div class="benefit-icon" aria-hidden="true">🐦</div>
+        <h3 class="benefit-title">دعم الحياة البرية</h3>
+        <p class="benefit-desc">توفر موطناً للطيور والحشرات والكائنات المختلفة، وتحافظ على التنوع البيولوجي الحيوي لكوكبنا.</p>
+      </article>
+
+      <article class="benefit-card reveal">
+        <div class="benefit-icon" aria-hidden="true">🧘</div>
+        <h3 class="benefit-title">تحسين الصحة النفسية</h3>
+        <p class="benefit-desc">المساحات الخضراء تساعد على الاسترخاء وتقليل التوتر والقلق، وترفع مستوى السعادة وجودة الحياة.</p>
+      </article>
+
+      <article class="benefit-card reveal">
+        <div class="benefit-icon" aria-hidden="true">🔇</div>
+        <h3 class="benefit-title">تقليل التلوث والضوضاء</h3>
+        <p class="benefit-desc">تعمل الأشجار كحواجز طبيعية للغبار والجزيئات الدقيقة وتمتص الضجيج، مما يجعل البيئة الحضرية أهدأ وأنظف.</p>
+      </article>
+
+      <article class="benefit-card reveal">
+        <div class="benefit-icon" aria-hidden="true">🌆</div>
+        <h3 class="benefit-title">تجميل المدن</h3>
+        <p class="benefit-desc">تجعل الأماكن أكثر جمالاً وحيوية وإلهاماً، وتزيد من قيمة الأحياء السكنية وجاذبيتها السياحية.</p>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ============================================================
+       STATS
+  ============================================================ -->
+  <section id="stats" aria-labelledby="stats-title">
+    <div class="stats-inner">
+      <div class="stats-header reveal">
+        <span class="section-eyebrow">بالأرقام</span>
+        <h2 class="section-title" id="stats-title">أرقام تُثبت القوة<br>الخفية للأشجار</h2>
+        <p class="section-desc">
+          الإحصائيات العلمية تؤكد ما تعرفه الطبيعة منذ الأزل — الأشجار هي أكثر التقنيات البيئية كفاءةً.
+        </p>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card reveal">
+          <span class="stat-icon" aria-hidden="true">🌬️</span>
+          <div class="stat-number">
+            <span class="counter" data-target="100">0</span><span class="stat-suffix">كغ</span>
+          </div>
+          <div class="stat-label">من الأكسجين تنتجه شجرة واحدة سنوياً — يكفي شخصَين</div>
+        </div>
+
+        <div class="stat-card reveal">
+          <span class="stat-icon" aria-hidden="true">☁️</span>
+          <div class="stat-number">
+            <span class="counter" data-target="22">0</span><span class="stat-suffix">كغ</span>
+          </div>
+          <div class="stat-label">من ثاني أكسيد الكربون تمتصه الشجرة كل عام</div>
+        </div>
+
+        <div class="stat-card reveal">
+          <span class="stat-icon" aria-hidden="true">🌡️</span>
+          <div class="stat-number">
+            <span class="counter" data-target="8">0</span><span class="stat-suffix">°م</span>
+          </div>
+          <div class="stat-label">انخفاض في درجة حرارة الأحياء ذات الغطاء الشجري الكثيف</div>
+        </div>
+
+        <div class="stat-card reveal">
+          <span class="stat-icon" aria-hidden="true">🌍</span>
+          <div class="stat-number">
+            <span class="counter" data-target="1">0</span><span class="stat-suffix">تريليون</span>
+          </div>
+          <div class="stat-label">شجرة تحتاجها الأرض لاستعادة التوازن المناخي</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       CTA
+  ============================================================ -->
+  <section id="cta" aria-labelledby="cta-title">
+    <div class="cta-inner">
+      <div class="cta-text reveal">
+        <span class="section-eyebrow">كن جزءاً من الحل</span>
+        <h2 class="section-title" id="cta-title">كل شجرة تزرعها<br>تصنع فرقاً حقيقياً</h2>
+        <p class="section-desc">
+          لا تنتظر التغيير — كُنه. بخطوات بسيطة، يمكنك أن تكون جزءاً من حركة عالمية لإعادة التوازن للطبيعة.
+        </p>
+
+        <div class="cta-steps">
+          <div class="cta-step">
+            <div class="cta-step-icon" aria-hidden="true">🌱</div>
+            <span class="cta-step-text">ازرع شجرة واحدة في حديقتك أو حيّك</span>
+          </div>
+          <div class="cta-step">
+            <div class="cta-step-icon" aria-hidden="true">📢</div>
+            <span class="cta-step-text">شارك هذا الموقع مع من تحب لنشر الوعي</span>
+          </div>
+          <div class="cta-step">
+            <div class="cta-step-icon" aria-hidden="true">🤝</div>
+            <span class="cta-step-text">انضم إلى مبادرات التشجير في مجتمعك</span>
+          </div>
+          <div class="cta-step">
+            <div class="cta-step-icon" aria-hidden="true">💚</div>
+            <span class="cta-step-text">علّم الأطفال قيمة الأشجار والطبيعة</span>
+          </div>
+        </div>
+
+        <a href="#qr" class="btn-primary">
+          🖨️ احصل على QR Code للطباعة
+        </a>
+      </div>
+
+      <div class="cta-visual reveal">
+        <span class="cta-tree-emoji" role="img" aria-label="شجرة">🌳</span>
+        <div class="cta-visual-title">ابدأ اليوم</div>
+        <div class="cta-visual-sub">
+          الوقت المثالي لزراعة شجرة كان قبل عشرين عاماً.<br>
+          الوقت الثاني الأفضل هو الآن.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       QR CODE
+  ============================================================ -->
+  <section id="qr" aria-labelledby="qr-title">
+    <div class="qr-inner">
+      <div class="qr-card reveal">
+        <div class="qr-logo" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
+            <path d="M16 3C11 3 6 7 6 13C6 17.5 8.5 21.2 12 22.8V28H20V22.8C23.5 21.2 26 17.5 26 13C26 7 21 3 16 3Z" fill="#2D6A4F"/>
+          </svg>
+          Green Future
+        </div>
+
+        <div id="qrcode" role="img" aria-label="رمز QR للموقع"></div>
+
+        <p class="qr-url" aria-label="عنوان الموقع">green-future-awareness.web.app</p>
+
+        <div class="qr-scan-label">
+          <span>📱</span>
+          <span>امسح للزيارة الفورية</span>
+        </div>
+      </div>
+
+      <div class="qr-info reveal">
+        <span class="section-eyebrow">للمدارس والأماكن العامة</span>
+        <h2 class="section-title" id="qr-title">اطبع وعلّق<br>في كل مكان</h2>
+        <p class="section-desc">
+          استخدم هذا الرمز لمشاركة الموقع بسهولة في المدارس والمساجد والحدائق — دون الحاجة لكتابة أي رابط.
+        </p>
+
+        <div class="qr-uses" role="list">
+          <div class="qr-use-item" role="listitem">
+            <div class="qr-use-dot" aria-hidden="true"></div>
+            علّقه في لوحة إعلانات المدرسة أو الجامعة
+          </div>
+          <div class="qr-use-item" role="listitem">
+            <div class="qr-use-dot" aria-hidden="true"></div>
+            اطبعه على منشورات التوعية البيئية
+          </div>
+          <div class="qr-use-item" role="listitem">
+            <div class="qr-use-dot" aria-hidden="true"></div>
+            ضعه في الحدائق والمتنزهات العامة
+          </div>
+          <div class="qr-use-item" role="listitem">
+            <div class="qr-use-dot" aria-hidden="true"></div>
+            شاركه في نشرات الأحياء السكنية
+          </div>
+        </div>
+
+        <button class="btn-print" onclick="window.print()" aria-label="طباعة QR Code">
+          🖨️ طباعة QR Code
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       FOOTER
+  ============================================================ -->
+  <footer role="contentinfo">
+    <div class="footer-logo" aria-label="Green Future">
+      <svg width="24" height="24" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+        <path d="M16 3C11 3 6 7 6 13C6 17.5 8.5 21.2 12 22.8V28H20V22.8C23.5 21.2 26 17.5 26 13C26 7 21 3 16 3Z" fill="#52B788"/>
+        <rect x="15" y="22" width="2" height="7" rx="1" fill="#6B4226"/>
+      </svg>
+      Green Future
+    </div>
+    <p class="footer-tagline">معاً نحو مستقبل أخضر أجمل</p>
+    <div class="footer-divider" aria-hidden="true"></div>
+    <p class="footer-copy">
+      &copy; 2025 Green Future — صُنع بـ 💚 من أجل كوكبنا
+    </p>
+  </footer>
+
+  <!-- ============================================================
+       SCRIPTS
+  ============================================================ -->
+  <script>
+    // ── THEME TOGGLE ──────────────────────────────────────────────
+    const themeToggle = document.getElementById('themeToggle');
+    const html = document.documentElement;
+
+    // Detect system preference
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedTheme = localStorage.getItem('gf-theme');
+    let currentTheme = savedTheme || (prefersDark ? 'dark' : 'light');
+
+    function applyTheme(theme) {
+      html.setAttribute('data-theme', theme);
+      themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+      themeToggle.setAttribute('aria-label', theme === 'dark' ? 'التبديل للوضع النهاري' : 'التبديل للوضع الليلي');
+      localStorage.setItem('gf-theme', theme);
+    }
+
+    applyTheme(currentTheme);
+
+    themeToggle.addEventListener('click', () => {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      applyTheme(currentTheme);
+    });
+
+
+    // ── MOBILE MENU ───────────────────────────────────────────────
+    const hamburger = document.getElementById('hamburger');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const mobileClose = document.getElementById('mobileClose');
+
+    function openMenu() {
+      mobileMenu.classList.add('open');
+      hamburger.setAttribute('aria-expanded', 'true');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeMenu() {
+      mobileMenu.classList.remove('open');
+      hamburger.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+    }
+
+    hamburger.addEventListener('click', openMenu);
+    mobileClose.addEventListener('click', closeMenu);
+
+    document.querySelectorAll('.mobile-link').forEach(link => {
+      link.addEventListener('click', closeMenu);
+    });
+
+
+    // ── SCROLL REVEAL ─────────────────────────────────────────────
+    const reveals = document.querySelectorAll('.reveal');
+
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+    reveals.forEach(el => revealObserver.observe(el));
+
+
+    // ── ANIMATED COUNTERS ─────────────────────────────────────────
+    const counters = document.querySelectorAll('.counter');
+
+    const counterObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          animateCounter(entry.target);
+          counterObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.5 });
+
+    function animateCounter(el) {
+      const target = parseInt(el.dataset.target, 10);
+      const duration = 2000;
+      const step = 16;
+      const increment = target / (duration / step);
+      let current = 0;
+
+      const timer = setInterval(() => {
+        current += increment;
+        if (current >= target) {
+          el.textContent = target;
+          clearInterval(timer);
+        } else {
+          el.textContent = Math.floor(current);
+        }
+      }, step);
+    }
+
+    counters.forEach(c => counterObserver.observe(c));
+
+
+    // ── QR CODE (pure JS, no external library) ───────────────────
+    // Minimal QR encoder for alphanumeric / byte mode — enough for a URL
+    (function(){
+      // --- Reed-Solomon GF(256) arithmetic ---
+      var GF_EXP = new Uint8Array(512);
+      var GF_LOG = new Uint8Array(256);
+      (function(){
+        var x=1;
+        for(var i=0;i<255;i++){
+          GF_EXP[i]=x; GF_LOG[x]=i;
+          x<<=1; if(x&256) x^=285;
+        }
+        for(var i=255;i<512;i++) GF_EXP[i]=GF_EXP[i-255];
+      })();
+      function gfMul(a,b){ return (a&&b)?GF_EXP[GF_LOG[a]+GF_LOG[b]]:0; }
+      function rsGen(n){
+        var g=[1];
+        for(var i=0;i<n;i++){
+          var p=[1,GF_EXP[i]];
+          var r=new Array(g.length+1).fill(0);
+          for(var j=0;j<g.length;j++)
+            for(var k=0;k<p.length;k++) r[j+k]^=gfMul(g[j],p[k]);
+          g=r;
+        }
+        return g;
+      }
+      function rsEncode(msg,n){
+        var gen=rsGen(n);
+        var rem=new Array(n).fill(0);
+        for(var i=0;i<msg.length;i++){
+          var coef=msg[i]^rem.shift(); rem.push(0);
+          for(var j=0;j<n;j++) rem[j]^=gfMul(gen[j+1],coef);
+        }
+        return rem;
+      }
+
+      // --- Data encoding (byte mode, UTF-8) ---
+      function encodeData(str){
+        var bytes=[];
+        for(var i=0;i<str.length;i++){
+          var c=str.charCodeAt(i);
+          if(c<128){ bytes.push(c); }
+          else if(c<2048){ bytes.push(0xC0|(c>>6),0x80|(c&63)); }
+          else { bytes.push(0xE0|(c>>12),0x80|((c>>6)&63),0x80|(c&63)); }
+        }
+        return bytes;
+      }
+
+      // --- QR version / EC tables (version 1–5, level M) ---
+      // [version]: [total codewords, ec codewords per block, blocks, remainder bits]
+      var VER_TABLE={
+        1:[26,10,1,0], 2:[44,16,1,7], 3:[70,26,1,7],
+        4:[100,18,2,7], 5:[134,24,2,7]
+      };
+
+      // --- Alignment pattern positions ---
+      var ALIGN_POS={1:[],2:[6,18],3:[6,22],4:[6,26],5:[6,30]};
+
+      // --- Format info strings (mask 0, level M) ---
+      var FORMAT_INFO=[
+        [1,0,1,0,1,0,0,0,0,0,1,0,0,1,0],
+        [1,0,1,0,1,1,1,1,0,0,0,1,0,0,1],
+        [1,0,1,1,0,0,0,1,1,1,1,0,0,0,0],
+        [1,0,1,1,0,1,1,0,1,1,0,1,0,1,1],
+        [1,0,0,0,1,0,1,1,0,1,0,1,1,0,1],
+        [1,0,0,0,1,1,0,0,0,1,1,0,1,1,0],
+        [1,0,0,1,0,0,1,0,1,0,0,1,1,1,0],
+        [1,0,0,1,0,1,0,1,1,0,1,0,1,0,1]
+      ];
+
+      function makeQR(text){
+        // Choose smallest version that fits
+        var bytes=encodeData(text);
+        var version=1;
+        // data capacity for byte mode, level M
+        var CAPS={1:16,2:28,3:44,4:64,5:86};
+        for(var v=1;v<=5;v++){ if(bytes.length<=CAPS[v]){version=v;break;} }
+        if(bytes.length>86) version=5; // clamp
+
+        var info=VER_TABLE[version];
+        var totalCW=info[0], ecPerBlock=info[1], blocks=info[2];
+        var dataCW=totalCW-ecPerBlock*blocks;
+
+        // Build bit stream
+        var bits=[];
+        function addBits(val,len){ for(var i=len-1;i>=0;i--) bits.push((val>>i)&1); }
+        addBits(4,4);               // byte mode indicator
+        addBits(bytes.length,8);    // character count
+        for(var i=0;i<bytes.length;i++) addBits(bytes[i],8);
+        // Terminator
+        for(var i=0;i<4&&bits.length<dataCW*8;i++) bits.push(0);
+        // Pad to byte boundary
+        while(bits.length%8) bits.push(0);
+        // Pad codewords
+        var padCW=[0xEC,0x11]; var pi=0;
+        while(bits.length<dataCW*8){ addBits(padCW[pi%2],8); pi++; }
+
+        // Convert bits to bytes
+        var dataBytes=[];
+        for(var i=0;i<bits.length;i+=8){
+          var b=0; for(var j=0;j<8;j++) b=(b<<1)|bits[i+j];
+          dataBytes.push(b);
+        }
+
+        // Split into blocks and add EC
+        var blockSize=Math.floor(dataCW/blocks);
+        var extraBlocks=dataCW%blocks;
+        var dataBlocks=[], ecBlocks=[];
+        var pos=0;
+        for(var b=0;b<blocks;b++){
+          var sz=blockSize+(b<(blocks-extraBlocks)?0:1);
+          var blk=dataBytes.slice(pos,pos+sz); pos+=sz;
+          dataBlocks.push(blk);
+          ecBlocks.push(rsEncode(blk,ecPerBlock));
+        }
+
+        // Interleave
+        var codewords=[];
+        var maxData=Math.max.apply(null,dataBlocks.map(function(b){return b.length;}));
+        for(var i=0;i<maxData;i++) for(var b=0;b<blocks;b++) if(i<dataBlocks[b].length) codewords.push(dataBlocks[b][i]);
+        for(var i=0;i<ecPerBlock;i++) for(var b=0;b<blocks;b++) codewords.push(ecBlocks[b][i]);
+
+        // --- Build matrix ---
+        var size=17+version*4;
+        var mat=[];
+        for(var i=0;i<size;i++){ mat.push([]); for(var j=0;j<size;j++) mat[i].push(-1); }
+        var reserved=[];
+        for(var i=0;i<size;i++){ reserved.push([]); for(var j=0;j<size;j++) reserved[i].push(false); }
+
+        function setModule(r,c,v){ mat[r][c]=v; reserved[r][c]=true; }
+
+        // Finder patterns
+        function finder(r,c){
+          for(var i=-1;i<=7;i++) for(var j=-1;j<=7;j++){
+            if(r+i<0||r+i>=size||c+j<0||c+j>=size) continue;
+            var isB=(i===0||i===6||j===0||j===6||(i>=2&&i<=4&&j>=2&&j<=4));
+            setModule(r+i,c+j,isB?1:0);
+          }
+        }
+        finder(0,0); finder(0,size-7); finder(size-7,0);
+
+        // Separators already covered by finder (-1 border)
+
+        // Timing patterns
+        for(var i=8;i<size-8;i++){
+          setModule(6,i,(i%2===0)?1:0);
+          setModule(i,6,(i%2===0)?1:0);
+        }
+
+        // Dark module
+        setModule(4*version+9,8,1);
+
+        // Format info placeholders
+        var fmtPos=[[0,8],[1,8],[2,8],[3,8],[4,8],[5,8],[7,8],[8,8],[8,7],[8,5],[8,4],[8,3],[8,2],[8,1],[8,0]];
+        var fmtPos2=[[8,size-1],[8,size-2],[8,size-3],[8,size-4],[8,size-5],[8,size-6],[8,size-7],[size-8,8],[size-7,8],[size-6,8],[size-5,8],[size-4,8],[size-3,8],[size-2,8],[size-1,8]];
+        for(var i=0;i<15;i++){ reserved[fmtPos[i][0]][fmtPos[i][1]]=true; reserved[fmtPos2[i][0]][fmtPos2[i][1]]=true; }
+
+        // Alignment patterns
+        var ap=ALIGN_POS[version];
+        for(var ai=0;ai<ap.length;ai++) for(var aj=0;aj<ap.length;aj++){
+          var r=ap[ai],c=ap[aj];
+          if(reserved[r][c]) continue;
+          for(var i=-2;i<=2;i++) for(var j=-2;j<=2;j++){
+            var isB=(Math.abs(i)==2||Math.abs(j)==2||i===0&&j===0);
+            setModule(r+i,c+j,isB?1:0);
+          }
+        }
+
+        // Place data bits (zigzag)
+        var cwIdx=0, bitIdx=7, upward=true;
+        var col=size-1;
+        while(col>0){
+          if(col===6) col--;
+          for(var delta=0;delta<size;delta++){
+            var row=upward?(size-1-delta):delta;
+            for(var side=0;side<2;side++){
+              var c2=col-side;
+              if(!reserved[row][c2]){
+                var bit=0;
+                if(cwIdx<codewords.length){
+                  bit=(codewords[cwIdx]>>bitIdx)&1;
+                  bitIdx--;
+                  if(bitIdx<0){ bitIdx=7; cwIdx++; }
+                }
+                // mask 0: (row+col)%2==0
+                if((row+c2)%2===0) bit^=1;
+                mat[row][c2]=bit;
+              }
+            }
+          }
+          upward=!upward; col-=2;
+        }
+
+        // Write format info (mask 0, level M)
+        var fi=FORMAT_INFO[0];
+        for(var i=0;i<15;i++){
+          mat[fmtPos[i][0]][fmtPos[i][1]]=fi[i];
+          mat[fmtPos2[i][0]][fmtPos2[i][1]]=fi[i];
+        }
+
+        return {matrix:mat, size:size};
+      }
+
+      function renderQR(qr, canvasId, opts){
+        opts=opts||{};
+        var dark=opts.dark||'#1B4332', light=opts.light||'#FFFFFF';
+        var scale=opts.scale||8, quiet=opts.quiet||4;
+        var total=(qr.size+quiet*2)*scale;
+        var cv=document.getElementById(canvasId)||document.createElement('canvas');
+        cv.width=cv.height=total;
+        var ctx=cv.getContext('2d');
+        ctx.fillStyle=light; ctx.fillRect(0,0,total,total);
+        ctx.fillStyle=dark;
+        for(var r=0;r<qr.size;r++)
+          for(var c=0;c<qr.size;c++)
+            if(qr.matrix[r][c]===1)
+              ctx.fillRect((c+quiet)*scale,(r+quiet)*scale,scale,scale);
+        return cv;
+      }
+
+      window.generateGreenQR = function(targetDiv, url, opts){
+        var qr=makeQR(url);
+        var cv=document.createElement('canvas');
+        cv.id='qr-canvas';
+        targetDiv.innerHTML='';
+        targetDiv.appendChild(cv);
+        renderQR(qr,'qr-canvas',opts);
+      };
+    })();
+
+    // ── Generate QR on load ───────────────────────────────────────
+    function generateQR() {
+      var url = 'https://green-future-awareness.web.app';
+      var div = document.getElementById('qrcode');
+      try {
+        window.generateGreenQR(div, url, { dark:'#1B4332', light:'#FFFFFF', scale:8, quiet:3 });
+      } catch(e) {
+        div.innerHTML = '<p style="color:#1B4332;font-size:0.8rem;padding:0.5rem">تعذّر توليد QR — الرابط: ' + url + '</p>';
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', generateQR);
+    } else {
+      generateQR();
+    }
+
+
+    // ── NAV SCROLL EFFECT ─────────────────────────────────────────
+    const nav = document.querySelector('nav');
+
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 50) {
+        nav.style.boxShadow = '0 4px 24px rgba(27,67,50,0.12)';
+      } else {
+        nav.style.boxShadow = 'none';
+      }
+    }, { passive: true });
+
+  </script>
+</body>
+</html>
